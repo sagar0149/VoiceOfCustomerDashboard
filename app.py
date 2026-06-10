@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -33,11 +34,41 @@ if uploaded_file:
     # Read CSV
     df = pd.read_csv(uploaded_file)
 
+    # Detect review column automatically
+    possible_review_columns = [
+        'reviewText',
+        'review',
+        'Review',
+        'text',
+        'comment',
+        'feedback'
+    ]
+
+    review_column = None
+
+    for col in possible_review_columns:
+        if col in df.columns:
+            review_column = col
+            break
+
+    if review_column is None:
+        st.error(
+            "No review column found. Please upload a CSV containing a review column."
+        )
+        st.stop()
+
     # Clean Reviews
-    df['clean_review'] = df['reviewText'].astype(str).apply(clean_text)
+    df['clean_review'] = (
+        df[review_column]
+        .astype(str)
+        .apply(clean_text)
+    )
 
     # Sentiment Analysis
-    df['Sentiment'] = df['clean_review'].apply(get_sentiment)
+    df['Sentiment'] = (
+        df['clean_review']
+        .apply(get_sentiment)
+    )
 
     # Dataset Preview
     st.subheader("Dataset Preview")
@@ -56,17 +87,16 @@ if uploaded_file:
         columns=[col for col in columns_to_hide if col in df.columns]
     )
 
-    preview_columns = [
-        'overall',
-        'summary',
-        'reviewText',
-        'Sentiment'
-    ]
+    preview_columns = []
 
-    preview_columns = [
-        col for col in preview_columns
-        if col in preview_df.columns
-    ]
+    if 'overall' in preview_df.columns:
+        preview_columns.append('overall')
+
+    if 'summary' in preview_df.columns:
+        preview_columns.append('summary')
+
+    preview_columns.append(review_column)
+    preview_columns.append('Sentiment')
 
     st.dataframe(
         preview_df[preview_columns].head(10),
@@ -90,7 +120,7 @@ if uploaded_file:
 
     st.subheader("📈 Analytics Dashboard")
 
-    # Pie + Bar Charts
+    # Pie Chart + Bar Chart
     col1, col2 = st.columns(2)
 
     with col1:
@@ -106,28 +136,29 @@ if uploaded_file:
         )
 
     # Rating Distribution
-    st.plotly_chart(
-        rating_distribution(df),
-        use_container_width=True
-    )
+    if 'overall' in df.columns:
+        st.plotly_chart(
+            rating_distribution(df),
+            use_container_width=True
+        )
 
-    # Sentiment vs Rating
-    st.plotly_chart(
-        sentiment_by_rating(df),
-        use_container_width=True
-    )
+        st.plotly_chart(
+            sentiment_by_rating(df),
+            use_container_width=True
+        )
 
     # Review Length Distribution
-    st.plotly_chart(
-        review_length_distribution(df),
-        use_container_width=True
-    )
+    if review_column == 'reviewText':
+        st.plotly_chart(
+            review_length_distribution(df),
+            use_container_width=True
+        )
 
     st.divider()
 
     # Keywords
     keywords = extract_keywords(
-        df['reviewText'].astype(str)
+        df[review_column].astype(str)
     )
 
     st.subheader("🔑 Top Keywords")
@@ -138,7 +169,7 @@ if uploaded_file:
 
     # Word Cloud
     all_text = " ".join(
-        df['reviewText'].astype(str)
+        df[review_column].astype(str)
     )
 
     wc = create_wordcloud(all_text)
@@ -164,3 +195,4 @@ if uploaded_file:
         file_name="analysis_report.csv",
         mime="text/csv"
     )
+
