@@ -200,18 +200,6 @@ streamlit run app.py
 
 ---
 
-## 📸 Screenshots
-
-Add screenshots here after deployment.
-
-Example:
-
-* Dashboard Home
-* Sentiment Analysis Charts
-* Word Cloud Visualization
-
----
-
 ## 🔮 Future Enhancements
 
 * BERT-Based Sentiment Analysis
@@ -243,8 +231,7 @@ Suitable as a **B.Tech CSE Major Project**.
 
 **Sagar Raj Sharma**
 
-B.Tech Computer Science & Engineering
+**GitHub:** https://github.com/sagar0149
 
-KIIT University
+---
 
-Nepal
